@@ -1,3 +1,10 @@
+import org.springframework.amqp.core.AmqpAdmin
+import org.springframework.amqp.core.AmqpTemplate
+import org.springframework.amqp.core.Queue
+import org.springframework.amqp.rabbit.connection.CachingConnectionFactory
+import org.springframework.amqp.rabbit.connection.ConnectionFactory
+import org.springframework.amqp.rabbit.core.RabbitAdmin
+import org.springframework.amqp.rabbit.core.RabbitTemplate
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
 import org.springframework.http.HttpStatus
@@ -6,6 +13,7 @@ import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
 import java.io.File
 import java.util.*
+
 
 @SpringBootApplication
 class Application
@@ -17,7 +25,11 @@ fun main(args: Array<String>) {
 }
 
 @RestController
-class UploadController {
+class RestHandler(
+    private val rabbitTemplate: RabbitTemplate,
+    private val rabbitAdmin: RabbitAdmin,
+    private val queue: Queue
+) {
 
     @PostMapping("/upload")
     private fun upload(@RequestParam("file") file: MultipartFile?): ResponseEntity<out Map<String, Any?>> {
@@ -46,6 +58,7 @@ class UploadController {
         }
 
         val fileName = UUID.randomUUID().toString()
+        rabbitTemplate.convertAndSend("whisper", fileName)
         val destFile = File(uploadDir, fileName)
         file.transferTo(destFile)
 
@@ -62,7 +75,6 @@ class UploadController {
         }
 
         val resultId = runWhisper(destFile)
-
         val response = mapOf(
             "message" to "Processing file.",
             "_links" to mapOf(
@@ -112,17 +124,17 @@ class UploadController {
 
 data class UploadResult(val ready: Boolean, val successful: Boolean, val errorMessage: String?, val id: String)
 
-fun runWhisper(file: File): String {
+private fun runWhisper(file: File): String {
     // Your logic for running whisper
     return UUID.randomUUID().toString()
 }
 
-fun getResult(token: String): UploadResult {
+private fun getResult(token: String): UploadResult {
     // Your logic for getting result
     return UploadResult(true, true, null, UUID.randomUUID().toString())
 }
 
-fun readResult(token: String): String {
+private fun readResult(token: String): String {
     // Your logic for reading result
     return "Result for $token"
 }
