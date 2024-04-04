@@ -13,14 +13,14 @@ class Application
 val uploadDir = File("uploads")
 
 fun main(args: Array<String>) {
-    runApplication<Application>(*args)
+    runApplication<App>(*args)
 }
 
 @RestController
 class UploadController {
 
     @PostMapping("/upload")
-    fun upload(@RequestParam("file") file: MultipartFile?): ResponseEntity<Map<String, Any>> {
+    private fun upload(@RequestParam("file") file: MultipartFile?): ResponseEntity<out Map<String, Any?>> {
         if (file == null || file.isEmpty) {
             val response = mapOf(
                 "message" to "File not found in request",
@@ -33,7 +33,7 @@ class UploadController {
             return ResponseEntity(response, HttpStatus.BAD_REQUEST)
         }
 
-        if (request.multipartFiles.size > 1) {
+        if (file.size > 1) {
             val response = mapOf(
                 "message" to "Only one file allowed per request",
                 "result" to "undefined",
@@ -74,7 +74,7 @@ class UploadController {
     }
 
     @GetMapping("/results/{token}")
-    fun getResult(@PathVariable token: String): ResponseEntity<Any> {
+    fun results(@PathVariable token: String): ResponseEntity<Any> {
         val result = getResult(token)
 
         return if (result.ready) {
