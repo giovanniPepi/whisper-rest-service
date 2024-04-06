@@ -1,11 +1,11 @@
-package whisper
+package whisper_rest_producer
 
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
 
 @SpringBootApplication
-class App
+class RestService
 
 fun main(args: Array<String>) {
-    runApplication<App>(*args)
+    runApplication<RestService>(*args)
 }

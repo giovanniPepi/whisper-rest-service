@@ -1,5 +1,5 @@
 import io.kotest.matchers.shouldBe
-import whisper.WhisperProcessBuilder
+import whisper_consumer_executor.WhisperProcessBuilder
 import java.io.File
 import kotlin.test.Test
 
