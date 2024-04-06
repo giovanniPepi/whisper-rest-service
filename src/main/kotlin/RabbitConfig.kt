@@ -1,6 +1,7 @@
 package whisper
 
-import org.springframework.amqp.core.*
+import org.springframework.amqp.core.Queue
+import org.springframework.amqp.core.QueueBuilder
 import org.springframework.amqp.rabbit.connection.ConnectionFactory
 import org.springframework.amqp.rabbit.core.RabbitAdmin
 import org.springframework.amqp.rabbit.core.RabbitTemplate
@@ -24,22 +25,5 @@ class RabbitConfig {
         return QueueBuilder
             .durable("WHISPER-QUEUE")
             .build()
-    }
-
-    @Bean
-    fun directExchange(): Exchange {
-        return ExchangeBuilder
-            .directExchange("DIRECT-EXCHANGE")
-            .durable(true)
-            .build()
-    }
-
-    @Bean
-    fun directBinding(queue: Queue): Binding {
-        return BindingBuilder
-            .bind(queue)
-            .to(directExchange())
-            .with("TO-WHISPER-QUEUE")
-            .noargs()
     }
 }

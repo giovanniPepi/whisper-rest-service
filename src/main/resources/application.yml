@@ -1,11 +1,17 @@
 spring:
   application:
-    name: kotlin-whisper
+    name: whisper-rest-service
+  servlet:
+    multipart:
+      max-file-size: 1024MB
+      max-request-size: 1024MB
   rabbitmq:
     host: localhost
     port: 5672
     username: guest
     password: guest
 
+
 server:
   port: 8001
+
