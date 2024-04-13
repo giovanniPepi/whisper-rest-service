@@ -1,14 +1,14 @@
 package application
 
-import application.util.getPath
-import application.util.getResult
-import application.util.logger
+import UPLOAD_DIR
+import getFile
+import getPath
+import logger
 import org.springframework.amqp.rabbit.core.RabbitTemplate
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
-import whisper.application.UPLOAD_DIR
 import java.io.IOException
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
@@ -62,7 +62,7 @@ class RestHandler(
 
     @GetMapping("/results/{token}")
     fun results(@PathVariable token: String): ResponseEntity<Any> {
-        val result = getResult(token)
+        val result = getFile(token)
 
         return if (result != null) {
             val transcription = result.inputStream().bufferedReader(StandardCharsets.UTF_8).use {
