@@ -1,9 +1,8 @@
 package application
 
 import UPLOAD_DIR
-import getFile
-import getPath
-import logger
+import WhisperUtils
+import WhisperUtils.Companion.logger
 import org.springframework.amqp.rabbit.core.RabbitTemplate
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -20,6 +19,11 @@ import kotlin.io.path.inputStream
 class RestHandler(
     private val rabbitTemplate: RabbitTemplate,
 ) {
+
+    companion object {
+        val whisperUtils = WhisperUtils()
+    }
+
     @PostMapping("/upload")
     private fun upload(@RequestParam("file") file: MultipartFile?): ResponseEntity<out Map<String, Any?>> {
         logger.warning("File received: $file, type is ${file?.contentType}")
@@ -38,7 +42,7 @@ class RestHandler(
 
         try {
             val token = UUID.randomUUID().toString()
-            getPath("$UPLOAD_DIR/$token")?.apply {
+            whisperUtils.getPath("$UPLOAD_DIR/$token")?.apply {
                 resolve(file.originalFilename!!)
                 Files.copy(file.inputStream, this)
             }
@@ -62,7 +66,7 @@ class RestHandler(
 
     @GetMapping("/results/{token}")
     fun results(@PathVariable token: String): ResponseEntity<Any> {
-        val result = getFile(token)
+        val result = whisperUtils.getFile(token)
 
         return if (result != null) {
             val transcription = result.inputStream().bufferedReader(StandardCharsets.UTF_8).use {
