@@ -1,4 +1,4 @@
-package whisper.application
+package application
 
 import org.springframework.amqp.core.Queue
 import org.springframework.amqp.core.QueueBuilder

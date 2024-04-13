@@ -1,14 +1,12 @@
-package application.util
-
-import whisper.application.RESULT_DIR
-import application.RestHandler
 import java.io.IOException
 import java.nio.file.*
 import java.util.logging.Logger
 
+const val UPLOAD_DIR = "/home/whisper/upload"
+const val RESULT_DIR = "/home/whisper/result"
 
-internal val logger: Logger = Logger.getLogger(RestHandler::class.java.name)
-internal fun createPath(pathString: String): Path? {
+val logger: Logger = Logger.getLogger("utils")
+fun createPath(pathString: String): Path? {
     return try {
         Paths.get(pathString)
     } catch (e: InvalidPathException) {
@@ -26,7 +24,7 @@ internal fun createPath(pathString: String): Path? {
     }
 }
 
-internal fun getPath(pathString: String): Path? {
+fun getPath(pathString: String): Path? {
     return try {
         Paths.get(pathString)
     } catch (e: InvalidPathException) {
@@ -50,8 +48,8 @@ internal fun getPath(pathString: String): Path? {
     }
 }
 
-internal fun getResult(token: String): Path? {
-    val directoryPath = Paths.get("$RESULT_DIR/$token")
+fun getFile(token: String): Path? {
+    val directoryPath = Paths.get(RESULT_DIR)
 
     try {
         Files.newDirectoryStream(directoryPath).use { stream ->

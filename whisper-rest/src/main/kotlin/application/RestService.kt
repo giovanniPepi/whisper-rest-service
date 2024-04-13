@@ -1,12 +1,12 @@
-package whisper.application
+package application
 
-import application.util.createPath
+import RESULT_DIR
+import UPLOAD_DIR
+import createPath
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
 import java.nio.file.Files
 
-const val UPLOAD_DIR = "/tmp/bastter-whisper/upload"
-const val RESULT_DIR = "/tmp/bastter-whisper/result"
 
 @SpringBootApplication
 class RestService
