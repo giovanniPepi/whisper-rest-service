@@ -1,6 +1,7 @@
 import java.io.IOException
 import java.nio.file.*
 import java.util.logging.Logger
+import kotlin.io.path.deleteExisting
 
 const val UPLOAD_DIR = "/home/whisper/upload"
 const val RESULT_DIR = "/home/whisper/result"
@@ -87,5 +88,56 @@ class WhisperUtils {
             return null
         }
         return null
+    }
+
+    fun deleteAllUploads() {
+       val path = getPath(UPLOAD_DIR)?.let {path ->
+           try {
+               Files.newDirectoryStream(path).use { stream ->
+                   for (filePath in stream) {
+                       if (Files.isRegularFile(filePath)) {
+                           filePath.deleteExisting()
+                       }
+                   }
+               }
+           }  catch (e: InvalidPathException) {
+               logger.severe("Error getting path for $path: $e")
+           } catch (e: IllegalArgumentException) {
+               logger.severe("Invalid combination of options specified for $path:  $e")
+           } catch (e: SecurityException) {
+               logger.severe("Security exception occurred while getting path for $path: $e")
+           } catch (e: FileSystemNotFoundException) {
+               logger.severe("FileSystem exception occurred while getting path for $path: $e")
+           } catch (e: FileAlreadyExistsException) {
+               logger.severe("File already exists at $path: $e")
+           } catch (e: IOException) {
+               logger.severe("Error deleting file $path $e")
+           }
+       }
+    }
+    fun deleteAllResults() {
+        val path = getPath(RESULT_DIR)?.let {path ->
+            try {
+                Files.newDirectoryStream(path).use { stream ->
+                    for (filePath in stream) {
+                        if (Files.isRegularFile(filePath)) {
+                            filePath.deleteExisting()
+                        }
+                    }
+                }
+            }  catch (e: InvalidPathException) {
+                logger.severe("Error getting path for $path: $e")
+            } catch (e: IllegalArgumentException) {
+                logger.severe("Invalid combination of options specified for $path:  $e")
+            } catch (e: SecurityException) {
+                logger.severe("Security exception occurred while getting path for $path: $e")
+            } catch (e: FileSystemNotFoundException) {
+                logger.severe("FileSystem exception occurred while getting path for $path: $e")
+            } catch (e: FileAlreadyExistsException) {
+                logger.severe("File already exists at $path: $e")
+            } catch (e: IOException) {
+                logger.severe("Error deleting file $path $e")
+            }
+        }
     }
 }
