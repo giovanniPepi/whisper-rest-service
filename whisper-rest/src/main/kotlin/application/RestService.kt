@@ -2,7 +2,7 @@ package application
 
 import RESULT_DIR
 import UPLOAD_DIR
-import createPath
+import WhisperUtils
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
 import java.nio.file.Files
@@ -12,7 +12,7 @@ import java.nio.file.Files
 class RestService
 
 fun main(args: Array<String>) {
-    createPath(UPLOAD_DIR)?.let { Files.createDirectories(it) }
-    createPath(RESULT_DIR)?.let { Files.createDirectories(it) }
+    WhisperUtils().createPath(UPLOAD_DIR)?.let { Files.createDirectories(it) }
+    WhisperUtils().createPath(RESULT_DIR)?.let { Files.createDirectories(it) }
     runApplication<RestService>(*args)
 }

@@ -1,4 +1,4 @@
-package application
+package application.rabbit
 
 import org.springframework.amqp.core.Queue
 import org.springframework.amqp.core.QueueBuilder
@@ -26,4 +26,12 @@ class RabbitConfig {
             .durable("WHISPER-QUEUE")
             .build()
     }
+
+    @Bean
+    fun readyQueue(rabbitAdmin: RabbitAdmin): Queue {
+        return QueueBuilder
+            .durable("WHISPER-READY-QUEUE")
+            .build()
+    }
+
 }
