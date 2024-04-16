@@ -5,12 +5,14 @@ import kotlin.io.path.deleteExisting
 
 const val UPLOAD_DIR = "/home/whisper/upload"
 const val RESULT_DIR = "/home/whisper/result"
+const val DOWNLOAD_DIR = "/home/whisper/download"
 
 class WhisperUtils {
     companion object {
         val logger: Logger = Logger.getLogger("utils")
 
     }
+
     fun createPath(pathString: String): Path? {
         return try {
             Paths.get(pathString)
@@ -53,15 +55,20 @@ class WhisperUtils {
         }
     }
 
-    fun getFile(token: String): Path? {
+    fun getFile(token: String, useExtension: Boolean): Path? {
         val directoryPath = Paths.get(RESULT_DIR)
+        var baseName: String
 
         try {
             Files.newDirectoryStream(directoryPath).use { stream ->
                 for (filePath in stream) {
                     if (Files.isRegularFile(filePath)) {
                         val fileName = filePath.fileName.toString()
-                        val baseName = fileName.substringBeforeLast(".", fileName)
+                        baseName = if(useExtension) {
+                            fileName
+                        } else {
+                            fileName.substringBeforeLast(".", fileName)
+                        }
                         if (baseName == token) {
                             return filePath
                         }
@@ -90,33 +97,9 @@ class WhisperUtils {
         return null
     }
 
+
     fun deleteAllUploads() {
-       val path = getPath(UPLOAD_DIR)?.let {path ->
-           try {
-               Files.newDirectoryStream(path).use { stream ->
-                   for (filePath in stream) {
-                       if (Files.isRegularFile(filePath)) {
-                           filePath.deleteExisting()
-                       }
-                   }
-               }
-           }  catch (e: InvalidPathException) {
-               logger.severe("Error getting path for $path: $e")
-           } catch (e: IllegalArgumentException) {
-               logger.severe("Invalid combination of options specified for $path:  $e")
-           } catch (e: SecurityException) {
-               logger.severe("Security exception occurred while getting path for $path: $e")
-           } catch (e: FileSystemNotFoundException) {
-               logger.severe("FileSystem exception occurred while getting path for $path: $e")
-           } catch (e: FileAlreadyExistsException) {
-               logger.severe("File already exists at $path: $e")
-           } catch (e: IOException) {
-               logger.severe("Error deleting file $path $e")
-           }
-       }
-    }
-    fun deleteAllResults() {
-        val path = getPath(RESULT_DIR)?.let {path ->
+        val path = getPath(UPLOAD_DIR)?.let { path ->
             try {
                 Files.newDirectoryStream(path).use { stream ->
                     for (filePath in stream) {
@@ -125,7 +108,90 @@ class WhisperUtils {
                         }
                     }
                 }
-            }  catch (e: InvalidPathException) {
+            } catch (e: InvalidPathException) {
+                logger.severe("Error getting path for $path: $e")
+            } catch (e: IllegalArgumentException) {
+                logger.severe("Invalid combination of options specified for $path:  $e")
+            } catch (e: SecurityException) {
+                logger.severe("Security exception occurred while getting path for $path: $e")
+            } catch (e: FileSystemNotFoundException) {
+                logger.severe("FileSystem exception occurred while getting path for $path: $e")
+            } catch (e: FileAlreadyExistsException) {
+                logger.severe("File already exists at $path: $e")
+            } catch (e: IOException) {
+                logger.severe("Error deleting file $path $e")
+            }
+        }
+    }
+
+    fun deleteAllResults() {
+        val path = getPath(RESULT_DIR)?.let { path ->
+            try {
+                Files.newDirectoryStream(path).use { stream ->
+                    for (filePath in stream) {
+                        if (Files.isRegularFile(filePath)) {
+                            filePath.deleteExisting()
+                        }
+                    }
+                }
+            } catch (e: InvalidPathException) {
+                logger.severe("Error getting path for $path: $e")
+            } catch (e: IllegalArgumentException) {
+                logger.severe("Invalid combination of options specified for $path:  $e")
+            } catch (e: SecurityException) {
+                logger.severe("Security exception occurred while getting path for $path: $e")
+            } catch (e: FileSystemNotFoundException) {
+                logger.severe("FileSystem exception occurred while getting path for $path: $e")
+            } catch (e: FileAlreadyExistsException) {
+                logger.severe("File already exists at $path: $e")
+            } catch (e: IOException) {
+                logger.severe("Error deleting file $path $e")
+            }
+        }
+    }
+
+    fun deleteAllDownloads() {
+        val path = getPath(DOWNLOAD_DIR)?.let { path ->
+            try {
+                Files.newDirectoryStream(path).use { stream ->
+                    for (filePath in stream) {
+                        if (Files.isRegularFile(filePath)) {
+                            filePath.deleteExisting()
+                        }
+                    }
+                }
+            } catch (e: InvalidPathException) {
+                logger.severe("Error getting path for $path: $e")
+            } catch (e: IllegalArgumentException) {
+                logger.severe("Invalid combination of options specified for $path:  $e")
+            } catch (e: SecurityException) {
+                logger.severe("Security exception occurred while getting path for $path: $e")
+            } catch (e: FileSystemNotFoundException) {
+                logger.severe("FileSystem exception occurred while getting path for $path: $e")
+            } catch (e: FileAlreadyExistsException) {
+                logger.severe("File already exists at $path: $e")
+            } catch (e: IOException) {
+                logger.severe("Error deleting file $path $e")
+            }
+        }
+    }
+
+    fun moveDownloadedAudioToUploadDir(token: String) {
+        val path = getPath(DOWNLOAD_DIR)?.let { path ->
+            try {
+                Files.newDirectoryStream(path).use { stream ->
+                    for (filePath in stream) {
+                        if (Files.isRegularFile(filePath)) {
+                            val uploadDir = getPath(UPLOAD_DIR)
+
+                            uploadDir?.let {
+                                val targetPath = uploadDir.resolve(filePath.fileName)
+                                Files.move(filePath, targetPath, StandardCopyOption.REPLACE_EXISTING)
+                            }
+                        }
+                    }
+                }
+            } catch (e: InvalidPathException) {
                 logger.severe("Error getting path for $path: $e")
             } catch (e: IllegalArgumentException) {
                 logger.severe("Invalid combination of options specified for $path:  $e")

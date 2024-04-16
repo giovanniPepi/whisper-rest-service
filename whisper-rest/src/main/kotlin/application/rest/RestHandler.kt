@@ -3,6 +3,7 @@ package application.rest
 import UPLOAD_DIR
 import WhisperUtils
 import WhisperUtils.Companion.logger
+import application.processbuilder.VideoProcessBuilder
 import org.springframework.amqp.core.Message
 import org.springframework.amqp.rabbit.annotation.RabbitListener
 import org.springframework.amqp.rabbit.core.RabbitTemplate
@@ -28,43 +29,60 @@ class RestHandler(
     }
 
     @PostMapping("/upload")
-    private fun upload(@RequestParam("file") file: MultipartFile?): ResponseEntity<out Map<String, Any?>> {
-        logger.warning("File received: $file, type is ${file?.contentType}")
+    private fun upload(
+        @RequestParam("file") file: MultipartFile?,
+        @RequestParam("link") link: String?,
+    ): ResponseEntity<out Map<String, Any?>> {
+        val token = UUID.randomUUID().toString()
+        logger.warning("Upload request: Token $token, file $file, type ${file?.contentType}, link $link")
 
-        if (file == null || file.isEmpty) {
-            val response = mapOf(
-                "message" to "File not found in request", "result" to "undefined", "_links" to mapOf(
-                    "self" to mapOf("href" to "/upload/undefined"), "upload" to mapOf("href" to "/upload")
+        // handle link
+        if (!link.isNullOrEmpty()) {
+            val videoStatus = VideoProcessBuilder().runYtDlp(link = link, token = token)
+            if (videoStatus != 0) {
+                val response = mapOf(
+                    "message" to "Error processing media from link", "result" to "undefined", "_links" to mapOf(
+                        "self" to mapOf("href" to "/upload/undefined"), "upload" to mapOf("href" to "/upload")
+                    )
                 )
-            )
-            return ResponseEntity(response, HttpStatus.BAD_REQUEST)
-        }
-
-        try {
-            val token = UUID.randomUUID().toString()
-            whisperUtils.getPath("$UPLOAD_DIR/$token")?.apply {
-                resolve(file.originalFilename!!)
-                Files.copy(file.inputStream, this)
+                return ResponseEntity(response, HttpStatus.BAD_REQUEST)
             }
-
-            postMessageToQueue(token)
-
-            val response = mapOf(
-                "message" to "Processing file.", "_links" to mapOf(
-                    "self" to mapOf("href" to "/results/$token"), "results" to mapOf("href" to "/results")
+        } else {
+            // handle null file
+            if (file == null || file.isEmpty) {
+                val response = mapOf(
+                    "message" to "File not found in request", "result" to "undefined", "_links" to mapOf(
+                        "self" to mapOf("href" to "/upload/undefined"), "upload" to mapOf("href" to "/upload")
+                    )
                 )
+                return ResponseEntity(response, HttpStatus.BAD_REQUEST)
+            } else {
+                try {
+                    whisperUtils.getPath("$UPLOAD_DIR/$token")?.apply {
+                        resolve(file.originalFilename!!)
+                        Files.copy(file.inputStream, this)
+                    }
 
-            )
-            return ResponseEntity(response, HttpStatus.ACCEPTED)
-        } catch (e: IOException) {
-            logger.severe("Io error: $e")
-            return ResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR)
+                } catch (e: IOException) {
+                    logger.severe("Io error: $e")
+                    return ResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR)
+                }
+            }
         }
+
+        postMessageToQueue(token)
+        val response = mapOf(
+            "message" to "Processing $token", "_links" to mapOf(
+                "self" to mapOf("href" to "/results/$token"), "results" to mapOf("href" to "/results")
+            )
+        )
+        return ResponseEntity(response, HttpStatus.ACCEPTED)
+
     }
 
     @GetMapping("/results/{token}")
     fun result(@PathVariable token: String): ResponseEntity<Any> {
-        val result = whisperUtils.getFile(token)
+        val result = whisperUtils.getFile(token, useExtension = false)
         removeReadyJob(token)
         return if (result != null) {
             val transcription = result.inputStream().bufferedReader(StandardCharsets.UTF_8).use {
