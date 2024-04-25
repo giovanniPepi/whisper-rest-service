@@ -55,21 +55,15 @@ class WhisperUtils {
         }
     }
 
-    fun getFile(token: String, useExtension: Boolean): Path? {
+    fun getFile(token: String): Path? {
         val directoryPath = Paths.get(RESULT_DIR)
-        var baseName: String
 
         try {
             Files.newDirectoryStream(directoryPath).use { stream ->
                 for (filePath in stream) {
                     if (Files.isRegularFile(filePath)) {
                         val fileName = filePath.fileName.toString()
-                        baseName = if(useExtension) {
-                            fileName
-                        } else {
-                            fileName.substringBeforeLast(".", fileName)
-                        }
-                        if (baseName == token) {
+                        if (fileName.contains(token)) {
                             return filePath
                         }
                     }

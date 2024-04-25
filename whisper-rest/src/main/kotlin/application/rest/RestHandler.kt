@@ -82,7 +82,7 @@ class RestHandler(
 
     @GetMapping("/results/{token}")
     fun result(@PathVariable token: String): ResponseEntity<Any> {
-        val result = whisperUtils.getFile(token, useExtension = false)
+        val result = whisperUtils.getFile(token)
         removeReadyJob(token)
         return if (result != null) {
             val transcription = result.inputStream().bufferedReader(StandardCharsets.UTF_8).use {

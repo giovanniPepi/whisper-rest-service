@@ -14,7 +14,7 @@ internal class VideoProcessBuilder {
         WhisperUtils().deleteAllDownloads()
 
         val result = ProcessBuilder(
-            "yt-dlp", "--extract-audio", "-o", "$outputDir/$token", link
+            "yt-dlp", "--extract-audio", "--audio-format", "opus", "-o", "$outputDir/$token", link
         )
             .redirectOutput(ProcessBuilder.Redirect.INHERIT)
             .redirectError(ProcessBuilder.Redirect.INHERIT)
